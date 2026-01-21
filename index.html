@@ -20,9 +20,10 @@
         #ui-overlay { width: 85%; background: #0c0c0c; border-radius: 12px; padding: 22px; display: flex; flex-direction: column; pointer-events: none; }
         #prev-art { width: 100%; aspect-ratio: 1; background-color: #282828; border-radius: 4px; margin-bottom: 22px; object-fit: cover; }
 
+        /* Preview UI: 12px gap for Title, 12px for Metadata */
         .text-group { display: flex; flex-direction: column; text-align: left; } 
-        #prev-title { font-weight: 800; font-size: 21px; line-height: 1.2; margin-bottom: 6px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-        #prev-artist { font-weight: 500; font-size: 15px; color: #b3b3b3; line-height: 1.2; margin-bottom: 3px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+        #prev-title { font-weight: 800; font-size: 21px; line-height: 1.2; margin-bottom: 4px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+        #prev-artist { font-weight: 500; font-size: 15px; color: #b3b3b3; line-height: 1.2; margin-bottom: 4px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
         #prev-album { font-weight: 400; font-size: 13px; color: #727272; line-height: 1.2; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 
         .controls { margin-top: 24px; width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 12px; background: #1e1e1e; padding: 20px; border-radius: 16px; }
@@ -105,9 +106,8 @@
         document.getElementById('download-btn').onclick = () => {
             const btn = document.getElementById('download-btn'); btn.innerText = "Exporting...";
             
-            // ADJUSTED SPACING CONSTANTS
-            const titleGap = 24;    // Updated to exactly 24px as requested
-            const metadataGap = 12; // Keeps the sub-metadata tighter together
+            // UNIFORM GAP CONSTANT
+            const uniformGap = 12; 
             
             const cardW = 900, artSize = 800, sidePadding = (cardW - artSize) / 2;
             const tT = document.getElementById('t-in').value || "Title", aT = document.getElementById('a-in').value || "Artist", alT = document.getElementById('al-in').value || "Album";
@@ -125,7 +125,7 @@
             const hA = getH(aT, fonts.secondary, 48, 58, 2);
             const hAl = getH(alT, fonts.secondary, 40, 50, 2);
             
-            const totalTextH = hT + titleGap + hA + metadataGap + hAl;
+            const totalTextH = hT + uniformGap + hA + uniformGap + hAl;
             const finalCardH = artSize + totalTextH + 130; 
             const cardX = (1080 - cardW) / 2, cardY = (1920 - finalCardH) / 2;
 
@@ -147,10 +147,10 @@
             curY = wrapText(ctx, tT, artX, curY, artSize, 84, 2);
 
             ctx.fillStyle = "#b3b3b3"; ctx.font = `500 48px ${fonts.secondary}`; 
-            curY = wrapText(ctx, aT, artX, curY + titleGap, artSize, 58, 2);
+            curY = wrapText(ctx, aT, artX, curY + uniformGap, artSize, 58, 2);
 
             ctx.fillStyle = "#727272"; ctx.font = `400 40px ${fonts.secondary}`; 
-            wrapText(ctx, alT, artX, curY + metadataGap, artSize, 50, 2);
+            wrapText(ctx, alT, artX, curY + uniformGap, artSize, 50, 2);
 
             const link = document.createElement('a'); link.download = 'share-card.png';
             link.href = exportCanvas.toDataURL('image/png', 1.0); link.click();
