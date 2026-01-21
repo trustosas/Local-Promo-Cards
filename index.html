@@ -2,34 +2,25 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Local Promo Cards</title>
+    <title>Metadata Card Designer</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;800&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
     <style>
         body { font-family: 'Inter', sans-serif; background: #121212; color: white; display: flex; flex-direction: column; align-items: center; padding: 20px; }
-        
-        /* UI Preview */
         #preview-container { width: 360px; height: 640px; position: relative; border-radius: 8px; overflow: hidden; background: #222; display: flex; align-items: center; justify-content: center; box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
         #ui-overlay { width: 300px; background: #0c0c0c; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; pointer-events: none; box-sizing: border-box; }
-        
-        /* Fixed: Dark Grey Placeholder */
         #prev-art { width: 100%; aspect-ratio: 1; background-color: #282828; border-radius: 4px; margin-bottom: 20px; object-fit: cover; }
-        
-        .text-group { display: flex; flex-direction: column; gap: 4px; padding: 0 2px; } 
-        #prev-title { font-weight: 800; font-size: 22px; line-height: 1.2; margin-bottom: 2px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .text-group { display: flex; flex-direction: column; gap: 8px; padding: 0 2px; } 
+        #prev-title { font-weight: 800; font-size: 22px; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         #prev-artist { font-weight: 500; font-size: 15px; color: #b3b3b3; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
         #prev-album { font-weight: 400; font-size: 13px; color: #727272; line-height: 1.2; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        
         .controls { margin-top: 20px; width: 360px; display: flex; flex-direction: column; gap: 12px; background: #1e1e1e; padding: 20px; border-radius: 12px; box-sizing: border-box; }
         input { padding: 10px; border-radius: 6px; border: 1px solid #333; background: #000; color: white; font-size: 14px; }
-        button { padding: 16px; border-radius: 30px; border: none; background: #1DB954; color: white; font-weight: 800; cursor: pointer; text-transform: uppercase; transition: filter 0.2s; }
-        button:hover { filter: brightness(1.1); }
+        button { padding: 16px; border-radius: 30px; border: none; background: #1DB954; color: white; font-weight: 800; cursor: pointer; text-transform: uppercase; }
         label { font-size: 10px; font-weight: 800; color: #666; text-transform: uppercase; margin-bottom: -8px; }
     </style>
 </head>
 <body>
-
     <div id="preview-container">
         <div id="ui-overlay">
             <img id="prev-art" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">
@@ -40,40 +31,27 @@
             </div>
         </div>
     </div>
-
     <div class="controls">
-        <button id="download-btn">Download Share Card</button>
-        <label>Primary Font (Title)</label>
-        <input type="file" id="font-p" accept=".ttf, .otf">
-        <label>Secondary Font (Metadata)</label>
-        <input type="file" id="font-s" accept=".ttf, .otf">
-        <label>Artwork</label>
-        <input type="file" id="art-in" accept="image/*">
-        <input type="text" id="t-in" placeholder="Song Title">
-        <input type="text" id="a-in" placeholder="Artist Name">
-        <input type="text" id="al-in" placeholder="Album Name">
+        <button id="download-btn">Download share-card.png</button>
+        <label>Primary Font</label><input type="file" id="font-p" accept=".ttf, .otf">
+        <label>Secondary Font</label><input type="file" id="font-s" accept=".ttf, .otf">
+        <label>Artwork</label><input type="file" id="art-in" accept="image/*">
+        <input type="text" id="t-in" placeholder="Song Title"><input type="text" id="a-in" placeholder="Artist Name"><input type="text" id="al-in" placeholder="Album Name">
     </div>
-
     <canvas id="export-canvas" width="1080" height="1920" style="display:none;"></canvas>
-
     <script>
         const colorThief = new ColorThief();
         const exportCanvas = document.getElementById('export-canvas');
         const ctx = exportCanvas.getContext('2d');
-        let activeColors = [50, 50, 50];
-        let fonts = { primary: 'Inter', secondary: 'Inter' };
+        let activeColors = [50, 50, 50], fonts = { primary: 'Inter', secondary: 'Inter' };
 
         function wrapText(context, text, x, y, maxWidth, lineHeight, maxLines) {
-            let words = text.split(' ');
-            let line = '';
-            let lineCount = 0;
-            for (let n = 0; n < words.length; n++) {
+            let words = text.split(' '), line = '', lineCount = 0;
+            for (let n = 0; i = n < words.length; n++) {
                 let testLine = line + words[n] + ' ';
                 if (context.measureText(testLine).width > maxWidth && n > 0) {
                     context.fillText(line, x, y);
-                    line = words[n] + ' ';
-                    y += lineHeight;
-                    lineCount++;
+                    line = words[n] + ' '; y += lineHeight; lineCount++;
                     if (lineCount >= maxLines) return y;
                 } else { line = testLine; }
             }
@@ -81,64 +59,42 @@
             return y + lineHeight;
         }
 
-        document.getElementById('art-in').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = (event) => {
-                const img = new Image();
-                img.onload = () => {
-                    document.getElementById('prev-art').src = event.target.result;
+        document.getElementById('art-in').onchange = e => {
+            const r = new FileReader(); r.onload = ev => {
+                const img = new Image(); img.onload = () => {
+                    document.getElementById('prev-art').src = ev.target.result;
                     activeColors = colorThief.getColor(img);
-                    const rgb = `rgb(${activeColors.join(',')})`;
-                    const dark = `rgb(${activeColors[0]*0.1},${activeColors[1]*0.1},${activeColors[2]*0.1})`;
-                    document.getElementById('preview-container').style.background = `linear-gradient(180deg, ${rgb} 0%, ${dark} 100%)`;
-                };
-                img.src = event.target.result;
+                    document.getElementById('preview-container').style.background = `linear-gradient(180deg, rgb(${activeColors.join(',')}) 0%, rgb(${activeColors[0]*0.1},${activeColors[1]*0.1},${activeColors[2]*0.1}) 100%)`;
+                }; img.src = ev.target.result;
+            }; r.readAsDataURL(e.target.files[0]);
+        };
+
+        const loadFont = (el, key) => {
+            el.onchange = async e => {
+                const fam = `F${Date.now()}`, font = new FontFace(fam, await e.target.files[0].arrayBuffer());
+                await font.load(); document.fonts.add(font); fonts[key] = fam;
+                if(key==='primary') document.getElementById('prev-title').style.fontFamily = fam;
+                else { document.getElementById('prev-artist').style.fontFamily = fam; document.getElementById('prev-album').style.fontFamily = fam; }
             };
-            reader.readAsDataURL(file);
-        });
+        };
+        loadFont(document.getElementById('font-p'), 'primary'); loadFont(document.getElementById('font-s'), 'secondary');
 
-        async function loadFont(inputEl, key) {
-            inputEl.addEventListener('change', async (e) => {
-                const file = e.target.files[0];
-                const family = `Custom${key}_${Date.now()}`;
-                const font = new FontFace(family, await file.arrayBuffer());
-                await font.load();
-                document.fonts.add(font);
-                fonts[key] = family;
-                const targetIds = key === 'primary' ? ['prev-title'] : ['prev-artist', 'prev-album'];
-                targetIds.forEach(id => document.getElementById(id).style.fontFamily = family);
-            });
-        }
-        loadFont(document.getElementById('font-p'), 'primary');
-        loadFont(document.getElementById('font-s'), 'secondary');
+        const sync = (id, target) => document.getElementById(id).oninput = e => document.getElementById(target).innerText = e.target.value || target.split('-')[1];
+        sync('t-in', 'prev-title'); sync('a-in', 'prev-artist'); sync('al-in', 'prev-album');
 
-        const sync = (id, target) => document.getElementById(id).addEventListener('input', (e) => document.getElementById(target).innerText = e.target.value || target.split('-')[1]);
-        sync('t-in', 'prev-title');
-        sync('a-in', 'prev-artist');
-        sync('al-in', 'prev-album');
+        document.getElementById('download-btn').onclick = () => {
+            const btn = document.getElementById('download-btn'); btn.innerText = "Exporting...";
+            const cardW = 900, artSize = 800, sidePadding = (cardW - artSize) / 2;
+            const titleText = document.getElementById('t-in').value || "Title", artistText = document.getElementById('a-in').value || "Artist", albumText = document.getElementById('al-in').value || "Album";
 
-        document.getElementById('download-btn').addEventListener('click', () => {
-            const btn = document.getElementById('download-btn');
-            btn.innerText = "Exporting...";
-
-            const cardW = 900, artSize = 800; 
-            const sidePadding = (cardW - artSize) / 2;
-            const maxTextWidth = artSize; 
-
-            const titleText = document.getElementById('t-in').value || "Title";
-            const artistText = document.getElementById('a-in').value || "Artist";
-            const albumText = document.getElementById('al-in').value || "Album";
+            // Uniform Spacing Constants
+            const gap = 20; // Exact pixel gap between text blocks
 
             function getH(txt, f, s, lh, ml) {
                 ctx.font = `${s}px ${f}`;
                 let words = txt.split(' '), line = '', lines = 1;
-                for (let n = 0; n < words.length; n++) {
-                    if (ctx.measureText(line + words[n] + ' ').width > maxTextWidth && n > 0) {
-                        line = words[n] + ' '; lines++;
-                        if (lines > ml) break;
-                    } else { line += words[n] + ' '; }
+                for (let i = 0; i < words.length; i++) {
+                    if (ctx.measureText(line + words[i] + ' ').width > artSize && i > 0) { line = words[i] + ' '; lines++; if (lines > ml) break; } else { line += words[i] + ' '; }
                 }
                 return Math.min(lines, ml) * lh;
             }
@@ -147,48 +103,37 @@
             const hA = getH(artistText, fonts.secondary, 48, 58, 2);
             const hAl = getH(albumText, fonts.secondary, 40, 50, 2);
             
-            const totalTextH = hT + hA + hAl + 60;
-            const finalCardH = artSize + totalTextH + 100;
+            const totalTextH = hT + gap + hA + gap + hAl;
+            const finalCardH = artSize + totalTextH + 130; 
             const cardX = (1080 - cardW) / 2, cardY = (1920 - finalCardH) / 2;
 
-            const grad = ctx.createLinearGradient(0, 0, 0, 1920);
-            grad.addColorStop(0, `rgb(${activeColors.join(',')})`);
-            grad.addColorStop(1, `rgb(${activeColors[0]*0.1},${activeColors[1]*0.1},${activeColors[2]*0.1})`);
-            ctx.fillStyle = grad; ctx.fillRect(0, 0, 1080, 1920);
-
+            const grad = ctx.createLinearGradient(0,0,0,1920);
+            grad.addColorStop(0, `rgb(${activeColors.join(',')})`); grad.addColorStop(1, `rgb(${activeColors[0]*0.1},${activeColors[1]*0.1},${activeColors[2]*0.1})`);
+            ctx.fillStyle = grad; ctx.fillRect(0,0,1080,1920);
             ctx.fillStyle = "#0c0c0c"; ctx.beginPath(); ctx.roundRect(cardX, cardY, cardW, finalCardH, 40); ctx.fill();
 
-            const artImg = document.getElementById('prev-art');
-            const artX = cardX + sidePadding, artY = cardY + sidePadding;
-            
-            // Draw Art (Background Fill if not populated)
-            ctx.save();
-            ctx.beginPath(); ctx.roundRect(artX, artY, artSize, artSize, 12); ctx.clip();
-            ctx.fillStyle = "#282828"; 
-            ctx.fillRect(artX, artY, artSize, artSize);
-            // If user has uploaded art, draw it over the grey
-            if (artImg.src.length > 100) { ctx.drawImage(artImg, artX, artY, artSize, artSize); }
+            const artImg = document.getElementById('prev-art'), artX = cardX + sidePadding, artY = cardY + sidePadding;
+            ctx.save(); ctx.beginPath(); ctx.roundRect(artX, artY, artSize, artSize, 12); ctx.clip();
+            ctx.fillStyle = "#282828"; ctx.fillRect(artX, artY, artSize, artSize);
+            if (artImg.src.length > 100) ctx.drawImage(artImg, artX, artY, artSize, artSize);
             ctx.restore();
 
             ctx.textAlign = "left";
-            let currentY = artY + artSize + 80;
+            let curY = artY + artSize + 90;
 
             ctx.fillStyle = "#ffffff"; ctx.font = `900 70px ${fonts.primary}`;
-            currentY = wrapText(ctx, titleText, artX, currentY, maxTextWidth, 84, 2);
+            curY = wrapText(ctx, titleText, artX, curY, artSize, 84, 2);
 
             ctx.fillStyle = "#b3b3b3"; ctx.font = `500 48px ${fonts.secondary}`;
-            currentY = wrapText(ctx, artistText, artX, currentY + 12, maxTextWidth, 58, 2);
+            curY = wrapText(ctx, artistText, artX, curY + gap, artSize, 58, 2);
 
             ctx.fillStyle = "#727272"; ctx.font = `400 40px ${fonts.secondary}`;
-            wrapText(ctx, albumText, artX, currentY + 8, maxTextWidth, 50, 2);
+            wrapText(ctx, albumText, artX, curY + gap, artSize, 50, 2);
 
-            // Final Export: Filename "share-card"
-            const link = document.createElement('a');
-            link.download = 'share-card.png';
-            link.href = exportCanvas.toDataURL('image/png', 1.0);
-            link.click();
-            btn.innerText = "Download Share Card";
-        });
+            const link = document.createElement('a'); link.download = 'share-card.png';
+            link.href = exportCanvas.toDataURL('image/png', 1.0); link.click();
+            btn.innerText = "Download share-card.png";
+        };
     </script>
 </body>
 </html>
